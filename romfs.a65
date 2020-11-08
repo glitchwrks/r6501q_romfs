@@ -1,0 +1,55 @@
+.segment "MEDDSC"
+.byte	$01		;EEPROM
+.byte	$02		;Number of entries
+SIG:	.byte	"ROMFS"
+MAJOR:	.byte	$01
+MINOR:	.byte	$00
+PATCH:	.byte	$00
+MAXPG:	.byte	$07		;32K device
+
+.segment "FILDIR"
+.byte	$01		;ROM page number
+
+.byte	$00		;Offset from $F000 high byte
+.byte	$00		;Offset from $F000 low byte
+
+.byte	$06		;Number of 128-byte blocks
+
+.byte	$70		;Load address high byte
+.byte	$00		;Load address low byte
+
+.byte	$70		;Entry point address high byte
+.byte	$00		;Entry point address low byte
+
+		 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+.byte	"EWOZ 1.1 for GW-R6501Q SBC      "		;32-character description
+
+
+
+
+.byte	$01		;ROM page number
+
+.byte	$08		;Offset from $F000 high byte
+.byte	$00		;Offset from $F000 low byte
+
+.byte	$13		;Number of 128-byte blocks
+
+.byte	$10		;Load address high byte
+.byte	$00		;Load address low byte
+
+.byte	$10		;Entry point address high byte
+.byte	$00		;Entry point address low byte
+
+		 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+.byte	"Tiny BASIC for GW-R6501Q SBC    "		;32-character description
+
+
+
+.segment "EWOZ"
+.incbin "./binaries/ewoz_ram.bin"
+
+.segment "TINY_BASIC"
+.incbin "./binaries/tiny_basic.bin"
+
+.segment "BOOTLOADER"
+.incbin "bootloader_loader.bin"

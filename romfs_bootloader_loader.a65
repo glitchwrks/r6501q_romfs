@@ -1,0 +1,161 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;ROMFS constants
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+ROMBASE = $F000
+MEDDSC = ROMBASE + $100
+FILDIR = MEDDSC + $10
+SIGNAT = MEDDSC + $02
+
+LDRADR = $0100		;Address in RAM where the bootloader is stored (and jumped into)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;System register equates
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+PORTA	= $00		;Port A data register
+
+MCR		= $14		;Mode Control Register
+
+SCCR	= $15		;Serial Communications Control Register
+SCSR	= $16		;Serial Communications Status Register
+SCDAT	= $17		;Serial Channel Data Register
+
+LATCHAL	= $18		;Lower Latch A (write)
+LATCHAH	= $19		;Upper Latch A (write)
+COUNTAH	= $19		;Upper Counter A (read)
+COUNTAL	= $1A		;Lower Counter A (read)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Zero-page variables
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+PTR		= $40
+PTRLO	= PTR
+PTRHI	= PTR+1
+
+NUMENTRIES = MEDDSC + 1
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Miscellaneous Equates
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+SW2MASK		= $3F		;Mask for SW2 bits of Port A
+BRMASK		= $30		;Mask for SW2 positions 3 and 4
+RFSMSK		= $0F		;Mask for SW2 positions 0, 1, 2, and 3
+
+
+.segment "ROM_CODE"
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;SETUP -- Start of the bootloader
+;
+;Falls through to SFTRST.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+SETUP:
+	SEI				;Disable interrupts
+	CLD				;Clear decimal arithmetic mode.
+	LDX	#$FF		;Set up stack pointer
+	TXS
+
+	LDA	#$00		;Set Mode Control Register: full address mode,
+	STA	MCR			;Port D tristate, Port B latch disabled, both
+					;timers in inverval mode.
+
+	LDA	#$C0		;Configure Serial Communications Channel
+	STA	SCCR		;Enable XMTR/RCVR, async, 8N1
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;SETBR -- Set the serial channel bitrate
+;
+;This routine reads from Port A and uses the value to 
+;select a bitrate for the internal serial channel. The 
+;speed will depend on the PHI2 frequency of the CPU:
+;
+;    Bit 5 | Bit 4 | PHI2 | Speed
+;    -------------------------------
+;      0   |   0   | 1MHz | 4800 bps
+;      0   |   1   | 1MHz | 2400 bps
+;      1   |   0   | 1MHz | 1200 bps
+;      1   |   1   | 1MHz |  300 bps
+;      0   |   0   | 2MHz | 9600 bps
+;      0   |   1   | 2MHz | 4800 bps
+;      1   |   0   | 2MHz | 2400 bps
+;      1   |   1   | 2MHz |  600 bps
+;
+;On the Glitch Works R65X1Q SBC, Port A bit 5 is connected
+;to SW2 position 3, bit 4 is connect to SW2 position 4.
+;
+;The bitrate table is stored at BRTAB.
+;
+;Do note that 9600 bps at 1 MHz PHI2 (19200 at 2 MHz PHI2)
+;is too far off-spec for most serial devices.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+SETBR:	
+	LDA	PORTA		;Get Port A contents
+	AND	#BRMASK		;Mask off bitrate switches 
+					;SW2-3 = PA5, SW2-4 = PA4
+	CLC
+	ROR				;SW2-3 = bit 4, SW2-4 = bit 3
+	ROR				;SW2-3 = bit 3, SW2-4 = bit 2
+	ROR				;SW2-3 = bit 2, SW2-4 = bit 1
+	TAX				;X = low byte offset into BRTAB
+	LDA	BRTAB,X		;A = low byte of divisor
+	STA	LATCHAL		;Set Latch A low byte
+	INX				;X = high byte offset into BRTAB
+	LDA	BRTAB,X		;A = high byte of divisor
+	STA	LATCHAH		;Set Latch A high byte
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;BLCOPY -- Bootloader Copy
+;
+;Copies the ROMFS bootloader into RAM and jumps to it.
+;
+;X is used as the index.
+;
+;The bootloader cannot be more than 255 bytes in size!
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+BLCOPY:
+	LDX		#$00
+CPYLUP:					;Bootloader copy loop
+	LDA		LOADER,X
+	STA		LDRADR,X
+	INX
+	CPX		#(LDREND-LOADER)	;At end of bootloader?
+	BNE		CPYLUP				;No, continue loading the loader
+
+BLJUMP:					;Jump into the bootloader in RAM!
+	JMP		LDRADR
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Serial Channel Bitrate Table
+;
+;See SETBR for usage. The values in this table are obtained
+;from the Rockwell R6501 One Chip Microprocessor datasheet.
+;
+;Noted bitrates are for a 1 MHz PHI2 clock. Double them for
+;2 MHz PHI2 clock.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+BRTAB:	.word	$000C		;4800 bps
+	.word	$0019		;2400 bps
+	.word	$0033		;1200 bps
+	.word	$00CF		; 300 bps
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;The bootloader binary
+;The bootloader MUST be compiled first!
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+LOADER:
+.incbin "loader.bin"
+LDREND:				;Bootloader end address
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;NMI/Reset/IRQ Vectors
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+.segment "VECTORS"
+
+.word	SETUP		;$FFFA/$FFFB = NMI
+.word	SETUP		;$FFFC/$FFFD = RESET
+.word	SETUP		;$FFFE/$FFFF = IRQ/BRK
