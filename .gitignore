@@ -1,0 +1,6 @@
+
+*.lst
+*.o
+bootloader_loader.bin
+loader.bin
+romfs.bin
