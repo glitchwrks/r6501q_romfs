@@ -1,11 +1,12 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;ROMFS constants
+;ROMFS address equates
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-ROMBASE = $F000
-MEDDSC = ROMBASE + $100
-FILDIR = MEDDSC + $10
-SIGNAT = MEDDSC + $02
+ROMBSE	= $F000		;ROMFS page base address
+MEDDSC	= ROMBSE + $100
+ETYCNT	= MEDDSC + $01	;ROMFS directory entry count
+FILDIR	= MEDDSC + $10
+SIGNAT	= MEDDSC + $02
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;System register equates
@@ -14,7 +15,7 @@ SIGNAT = MEDDSC + $02
 PORTA	= $00		;Port A data register (Option switches)
 PORTC	= $02		;Port C data register (ROM page)
 
-MCR		= $14		;Mode Control Register
+MCR	= $14		;Mode Control Register
 
 SCCR	= $15		;Serial Communications Control Register
 SCSR	= $16		;Serial Communications Status Register
@@ -49,68 +50,70 @@ SW2MASK		= $3F		;Mask for SW2 bits of Port A
 RFSMSK		= $0F		;Mask for SW2 positions 0, 1, 2, and 3
 RPGMSK		= $07		;Pageable ROM mask
 
-
 .segment "RAM_CODE"
-	LDX		#$00
-BMPLUP:					;Boot message print loop. Prints "Booting: "
-	LDA		BUTMSG,X
-	BEQ		BMPEND		;End loop if a null character is encountered
-	JSR		COUT
+	JSR	DIRETY		;Point SRCPTR at the requested ROMFS entry
+	LDX	#(BUTMSG - MESSAG)	;Load X with the offset of the "Booting: " string
+	BCC	BMPLUP		;Skip warning if the entry is valid
+	LDX	#$00		;Print "Invalid" followed by the booting string
+
+BMPLUP:	LDA	MESSAG,X	;Boot message print loop.
+	
+	BEQ	BMPEND		;End loop if a null character is encountered
+	JSR	COUT
 	INX
-	BNE		BMPLUP
-BMPEND:
-;A is 0
-;
-;X register will be used to keep track of printed chars
-;Y register will be used to index the string
-	JSR		DIRETY		;Point SRCPTR at the requested ROMFS entry
-	LDX		#$21		;Directory entry name is a fixed 32 bytes in size. Extra 1 for post-decrement loop.
-	LDY		#8			;Directory entry name is 8 bytes into the record
-BRPLUP:					;Boot record name print loop
-	LDA		(SRCPTR),Y
-	JSR		COUT
+	BNE	BMPLUP
+BMPEND:				;End of the boot message print loop
+
+	;Print out the name of the record to boot
+	;X register will be used to keep track of printed chars
+	;Y register will be used to index the string
+	LDX	#$21		;Directory entry name is a fixed 32 bytes in size. Extra 1 for post-decrement loop.
+	LDY	#8		;Directory entry name is 8 bytes into the record
+
+BRPLUP:	LDA	(SRCPTR),Y	;Boot record name print loop
+	JSR	COUT
 	INY
 	DEX
-	BNE		BRPLUP
+	BNE	BRPLUP
 
-	LDA		#$0a
-	JSR		COUT
-	LDA		#$0d
-	JSR		COUT
-;X is 0
-;Y is $28
-	LDY		#$00		;Byte 0: Starting ROM page number
-	LDA		(SRCPTR),Y	;Get the record's starting ROM page and store it
-	STA		ROMPGE
+	LDA	#$0a
+	JSR	COUT
+	LDA	#$0d
+	JSR	COUT
 
-	INY					;Byte 1: Offset from 0xF000 high byte
-	LDA		(SRCPTR),Y
-	CLC					;Add 0xF000 for the actual address
-	ADC		#$F0
-	PHA					;Store this for later
-	INY					;Byte 2: Offset from 0xF000 low byte
-	LDA		(SRCPTR),Y
-	PHA					;Store this for later too
+	;Set up the pointers and counters for the bootloader
+	LDY	#$00		;Byte 0: Starting ROM page number
+	LDA	(SRCPTR),Y	;Get the record's starting ROM page and store it
+	STA	ROMPGE
+
+	INY			;Byte 1: Offset from 0xF000 high byte
+	LDA	(SRCPTR),Y
+	CLC			;Add 0xF000 for the actual address
+	ADC	#$F0
+	PHA			;Store this for later
+	INY			;Byte 2: Offset from 0xF000 low byte
+	LDA	(SRCPTR),Y
+	PHA			;Store this for later too
 	
-	INY					;Byte 3: Number of 128-byte blocks
-	LDA		(SRCPTR),Y
-	STA		BLKCNT		;Store it for later
+	INY			;Byte 3: Number of 128-byte blocks
+	LDA	(SRCPTR),Y
+	TAX			;Store it for later
 
-	INY					;Byte 4: Load address high byte
-	LDA		(SRCPTR),Y
-	STA		DSTPHI
-	INY					;Byte 5: Load address low byte
-	LDA		(SRCPTR),Y
-	STA		DSTPLO		;DSTPTR now contains the entry's load address
+	INY			;Byte 4: Load address high byte
+	LDA	(SRCPTR),Y
+	STA	DSTPHI
+	INY			;Byte 5: Load address low byte
+	LDA	(SRCPTR),Y
+	STA	DSTPLO		;DSTPTR now contains the entry's load address
 
-	PLA					;Get the entry's address in ROMFS and store it
-	STA		SRCPLO		;We have everything we need, so we can overwrite the record's offset
+	PLA			;Get the entry's address in ROMFS and store it
+	STA	SRCPLO		;We have everything we need, so we can overwrite the record's offset
 	PLA
-	STA		SRCPHI
+	STA	SRCPHI
 
-	LDA		ROMPGE		;Select the starting page of the entry
-	ORA		#$08		;Ensure ROM Enable bit is set!
-	STA		PORTC
+	LDA	ROMPGE		;Select the starting page of the entry
+	ORA	#$08		;Ensure ROM Enable bit is set!
+	STA	PORTC
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;LDRLUP -- Loader Loop
@@ -120,111 +123,111 @@ BRPLUP:					;Boot record name print loop
 ;SRCPTR - The entry's starting address in the ROM page
 ;DSTPTR - The address in RAM where the entry is to be loaded
 ;ROMPGE - Current page in ROM
-;BLKCNT - Number of 128-byte blocks to load
+;X register - Number of 128-byte blocks to load
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-LDRLUP:					;Main loader loop
-	LDY		#$00
-
-CPYLUP:					;Copy loop
-	LDA		(SRCPTR),Y
-	STA		(DSTPTR),Y
-	INY
-	BPL		CPYLUP		;Loop while Y < $80
-
-	LDA		#'.'		;TESTING: Print out 1 dot per block
-	JSR		COUT
-
-	DEC		BLKCNT		;Decrement the number of blocks to load
-	BEQ		LDREND		;Jump into the record's entry point if done
-
-	CLC					;Increment the destination pointer by 128
-	LDA		DSTPLO
-	ADC		#$80
-	STA		DSTPLO
-	LDA		DSTPHI
-	ADC		#$00
-	STA		DSTPHI
-
-	CLC					;Increment the source pointer by 128 and handle page increment on overflow
-	LDA		SRCPLO
-	ADC		#$80
-	STA		SRCPLO
-	LDA		SRCPHI
-	ADC		#$00
-	STA		SRCPHI
-	BCC		LDRLUP		;Loop again if we didn't overflow
-
-	LDA		#'!'		;TESTING: Print out 1 exclamation point per page increment
-	JSR		COUT
+LDRLUP:	LDY	#$00		;Main loader loop
 	
-	INC		ROMPGE		;Increment the page register if we overflow (next page!)
-	LDA		ROMPGE		;Select the next page of ROM
-	ORA		#$08		;Ensure ROM Enable bit is set!
-	STA		PORTC
 
-	LDA		#$F0		;Reset the source pointer to the start of the ROMFS page
-	STA		SRCPHI
-	LDA		#$00
-	STA		SRCPLO
+CPYLUP:	LDA	(SRCPTR),Y	;Copy loop
+	
+	STA	(DSTPTR),Y
+	INY
+	BPL	CPYLUP		;Loop while Y < $80
 
-	BEQ		LDRLUP		;Z flag should be set here (unless something very bad has happened)
+	DEX			;Decrement the number of blocks to load
+	BEQ	LDREND		;Jump into the record's entry point if done
+
+	
+	CLC			;Increment the destination pointer by 128
+	TYA			;Y is already set to $80 by the above loop
+	ADC	DSTPLO
+	STA	DSTPLO
+	LDA	DSTPHI
+	ADC	#$00
+	STA	DSTPHI
+
+	CLC			;Increment the source pointer by 128 and handle page increment on overflow
+	TYA			;Y is still $80
+	ADC	SRCPLO
+	STA	SRCPLO
+	LDA	SRCPHI
+	ADC	#$00
+	STA	SRCPHI
+	BCC	LDRLUP		;Loop again if we didn't overflow
+	
+	INC	ROMPGE		;Increment the page register if we overflow (next page!)
+	LDA	ROMPGE		;Select the next page of ROM
+	ORA	#$08		;Ensure ROM Enable bit is set!
+	STA	PORTC
+
+	LDA	#$F0		;Reset the source pointer to the start of the ROMFS page
+	STA	SRCPHI
+
+	BNE	LDRLUP		;Z flag should not be set here (unless something very bad has happened)
 
 
-LDREND:
-	JSR		DIRETY		;Get the requested ROMFS directory entry again
-	LDY		#6			;Byte 6 - Entry point address high byte
-	LDA		(SRCPTR),Y
-	STA		DSTPHI
-	INY					;Byte 7 - Entry point address low byte
-	LDA		(SRCPTR),Y
-	STA		DSTPLO
+LDREND:	JSR	DIRETY		;Get the requested ROMFS directory entry again
+	LDY	#6		;Byte 6 - Entry point address high byte
+	LDA	(SRCPTR),Y
+	STA	DSTPHI
+	INY			;Byte 7 - Entry point address low byte
+	LDA	(SRCPTR),Y
+	STA	DSTPLO
 
-	LDA		#$0A		;TESTING: New line
-	JSR		COUT
-	LDA		#$0D
-	JSR		COUT
+	LDA	#$0A		;TESTING: New line
+	JSR	COUT
+	LDA	#$0D
+	JSR	COUT
 
-	JMP		(DSTPTR)		;Enter the loaded entry!
+	LDA	#$0F		;Select ROM page 7 with the ROM enable bit set.
+	STA	PORTC		;(Our vector table is here for NMI and IRQ)
+
+	JMP	(DSTPTR)	;Enter the loaded entry!
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;DIRETY -- Directory Entry
 ;
 ;Reads the requested ROMFS directory entry from port A and
-;	points the SRCPTR pointer at it.
-;The ROM page is changed to page 0
+;  points the SRCPTR pointer at it.
+;The ROM page is changed to page 0.
+;If the requested entry is invalid, SRCPTR is pointed at
+;  entry 0.
 ;
+;C flag is set if the entry is invalid.
 ;A register is not preserved
-;X register is used and will be mangled! X is set to 0
+;X register is used and will be mangled!
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-DIRETY:
-	;Set up the pointer
-	LDA		#(<FILDIR)	;Store low byte of ROMFS directory table
-	STA		SRCPLO		;Into pointer low byte
-	LDA		#(>FILDIR)	;Store high byte of ROMFS directory table
-	STA		SRCPHI		;Into pointer high byte
+DIRETY:	LDA	#(<FILDIR)	;Store low byte of ROMFS directory table
+	STA	SRCPLO		;Into pointer low byte
+	LDA	#(>FILDIR)	;Store high byte of ROMFS directory table
+	STA	SRCPHI		;Into pointer high byte
 
 	;Switch to page 0 of ROM (ROMFS directory is here)
-	LDA		#$08		;Ensure ROM Enable bit is set!
-	STA		PORTC
+	LDA	#$08		;Ensure ROM Enable bit is set!
+	STA	PORTC
 
-	LDA		PORTA		;Read in the option switches
-	AND		#RFSMSK		;Mask off ROMFS index switches
-	TAX					;Store the result in the X register for multiplication
-	BEQ		LUPEND		;Don't loop if X is 0
-DIRLUP:					;Multiplication loop
-	CLC					;Increment the pointer by 40 ($28)
-	LDA		SRCPLO
-	ADC		#$28		;Entry is 40 bytes in size
-	STA		SRCPLO
-	LDA		SRCPHI
-	ADC		#$00
-	STA		SRCPHI
+	LDA	PORTA		;Read in the option switches
+	AND	#RFSMSK		;Mask off ROMFS index switches
 
-	DEX					;Are we done?
-	BNE		DIRLUP		;Nope, increment the pointer by 40 again
-LUPEND:
-	RTS					;Yep, SRCPTR now contains the desired ROMFS entry
+	CLC			;Clear the carry flag in case we have a valid entry that is 0
+	BEQ	LUPEND		;Don't loop, since we're already pointing at entry 0
+	CMP	ETYCNT		;Check to make sure a valid entry is selected
+	BCS	LUPEND		;Is the requested entry >= Total entries? Return entry 0 if it is (invalid entry)
+
+	TAX			;Store the requested entry in X for multiplication
+DIRLUP:	CLC			;Multiplication loop
+				
+	LDA	SRCPLO		;Increment the pointer by 40 ($28)
+	ADC	#$28		;(Entry is 40 bytes in size)
+	STA	SRCPLO
+	LDA	SRCPHI
+	ADC	#$00
+	STA	SRCPHI
+
+	DEX			;Are we done?
+	BNE	DIRLUP		;Nope, increment the pointer by 40 again
+LUPEND:	RTS			;Yep, SRCPTR now contains the desired ROMFS entry
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;COUT -- Print a character to the console
@@ -244,4 +247,6 @@ COUT1:	LDA	SCSR		;Get UART status
 ;Strings
 ;;;;;;;;;;;;;;;;;;;
 
-BUTMSG:	.byte	$0d,$0a,"Booting: ",$00		;Boot message
+MESSAG:
+SERMSG:	.byte	$0d,$0a,"Invalid!"	;Boot selection error message
+BUTMSG:	.byte	$0d,$0a,"Booting: ",$00	;Boot message

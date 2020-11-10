@@ -1,11 +1,12 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;ROMFS constants
+;ROMFS address equates
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-ROMBASE = $F000
-MEDDSC = ROMBASE + $100
-FILDIR = MEDDSC + $10
-SIGNAT = MEDDSC + $02
+ROMBSE	= $F000		;ROMFS page base address
+MEDDSC	= ROMBSE + $100
+ETYCNT	= MEDDSC + $01	;ROMFS directory entry count
+FILDIR	= MEDDSC + $10
+SIGNAT	= MEDDSC + $02
 
 LDRADR = $0100		;Address in RAM where the bootloader is stored (and jumped into)
 
@@ -15,7 +16,7 @@ LDRADR = $0100		;Address in RAM where the bootloader is stored (and jumped into)
 
 PORTA	= $00		;Port A data register
 
-MCR		= $14		;Mode Control Register
+MCR	= $14		;Mode Control Register
 
 SCCR	= $15		;Serial Communications Control Register
 SCSR	= $16		;Serial Communications Status Register
@@ -30,18 +31,23 @@ COUNTAL	= $1A		;Lower Counter A (read)
 ;Zero-page variables
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-PTR		= $40
+PTR	= $40
 PTRLO	= PTR
 PTRHI	= PTR+1
 
-NUMENTRIES = MEDDSC + 1
+USRIRQ	= $40		;Put a JMP instruction here to the user-defined IRQ
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;Miscellaneous Equates
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-SW2MASK		= $3F		;Mask for SW2 bits of Port A
-BRMASK		= $30		;Mask for SW2 positions 3 and 4
-RFSMSK		= $0F		;Mask for SW2 positions 0, 1, 2, and 3
+SW2MASK	= $3F		;Mask for SW2 bits of Port A
+BRMASK	= $30		;Mask for SW2 positions 3 and 4
+RFSMSK	= $0F		;Mask for SW2 positions 0, 1, 2, and 3
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Miscellaneous Constants
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+LDRSZE	= (LDREND - LOADER)	;Bootloader binary size
 
 
 .segment "ROM_CODE"
@@ -52,18 +58,17 @@ RFSMSK		= $0F		;Mask for SW2 positions 0, 1, 2, and 3
 ;Falls through to SFTRST.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-SETUP:
-	SEI				;Disable interrupts
-	CLD				;Clear decimal arithmetic mode.
-	LDX	#$FF		;Set up stack pointer
+SETUP:	SEI		;Disable interrupts
+	CLD		;Clear decimal arithmetic mode.
+	LDX	#$FF	;Set up stack pointer
 	TXS
 
-	LDA	#$00		;Set Mode Control Register: full address mode,
-	STA	MCR			;Port D tristate, Port B latch disabled, both
-					;timers in inverval mode.
+	LDA	#$00	;Set Mode Control Register: full address mode,
+	STA	MCR	;Port D tristate, Port B latch disabled, both
+			;timers in inverval mode.
 
-	LDA	#$C0		;Configure Serial Communications Channel
-	STA	SCCR		;Enable XMTR/RCVR, async, 8N1
+	LDA	#$C0	;Configure Serial Communications Channel
+	STA	SCCR	;Enable XMTR/RCVR, async, 8N1
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;SETBR -- Set the serial channel bitrate
@@ -92,18 +97,17 @@ SETUP:
 ;is too far off-spec for most serial devices.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-SETBR:	
-	LDA	PORTA		;Get Port A contents
+SETBR:	LDA	PORTA		;Get Port A contents
 	AND	#BRMASK		;Mask off bitrate switches 
-					;SW2-3 = PA5, SW2-4 = PA4
+				;SW2-3 = PA5, SW2-4 = PA4
 	CLC
-	ROR				;SW2-3 = bit 4, SW2-4 = bit 3
-	ROR				;SW2-3 = bit 3, SW2-4 = bit 2
-	ROR				;SW2-3 = bit 2, SW2-4 = bit 1
-	TAX				;X = low byte offset into BRTAB
+	ROR			;SW2-3 = bit 4, SW2-4 = bit 3
+	ROR			;SW2-3 = bit 3, SW2-4 = bit 2
+	ROR			;SW2-3 = bit 2, SW2-4 = bit 1
+	TAX			;X = low byte offset into BRTAB
 	LDA	BRTAB,X		;A = low byte of divisor
 	STA	LATCHAL		;Set Latch A low byte
-	INX				;X = high byte offset into BRTAB
+	INX			;X = high byte offset into BRTAB
 	LDA	BRTAB,X		;A = high byte of divisor
 	STA	LATCHAH		;Set Latch A high byte
 
@@ -116,18 +120,14 @@ SETBR:
 ;
 ;The bootloader cannot be more than 255 bytes in size!
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-BLCOPY:
-	LDX		#$00
-CPYLUP:					;Bootloader copy loop
-	LDA		LOADER,X
-	STA		LDRADR,X
+BLCOPY:	LDX	#$00
+CPYLUP:	LDA	LOADER,X	;Bootloader copy loop
+	STA	LDRADR,X
 	INX
-	CPX		#(LDREND-LOADER)	;At end of bootloader?
-	BNE		CPYLUP				;No, continue loading the loader
+	CPX	#LDRSZE		;At end of bootloader?
+	BNE	CPYLUP		;No, continue loading the loader
 
-BLJUMP:					;Jump into the bootloader in RAM!
-	JMP		LDRADR
-
+BLJUMP:	JMP	LDRADR		;Jump into the bootloader in RAM!
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;Serial Channel Bitrate Table
@@ -149,13 +149,13 @@ BRTAB:	.word	$000C		;4800 bps
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 LOADER:
 .incbin "loader.bin"
-LDREND:				;Bootloader end address
+LDREND:			;Bootloader end address
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;NMI/Reset/IRQ Vectors
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 .segment "VECTORS"
 
-.word	SETUP		;$FFFA/$FFFB = NMI
+.word	USRIRQ		;$FFFA/$FFFB = NMI
 .word	SETUP		;$FFFC/$FFFD = RESET
-.word	SETUP		;$FFFE/$FFFF = IRQ/BRK
+.word	USRIRQ		;$FFFE/$FFFF = IRQ/BRK
