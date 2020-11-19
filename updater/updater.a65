@@ -1,0 +1,86 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;ROMFS address equates
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+ROMBSE	= $F000		;ROMFS page base address
+MEDDSC	= ROMBSE + $100
+ETYCNT	= MEDDSC + $01	;ROMFS directory entry count
+FILDIR	= MEDDSC + $10
+SIGNAT	= MEDDSC + $02
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;System register equates
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+PORTC	= $02		;Port C data register (ROM page)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Zero-page variables
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+SRCPTR	= $40		;Source pointer
+SRCPLO	= SRCPTR
+SRCPHI	= SRCPTR+1
+DSTPTR	= $42		;Destination pointer
+DSTPLO	= DSTPTR
+DSTPHI	= DSTPTR+1
+ROMPGE	= $44		;ROMFS page
+SELETY	= $45		;Selected entry
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;	QUESTIONS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; - Do we want to do the fast 64-byte block write operation on the EEPROM? - yes
+; - Software write protection? - yes
+;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;	IDEAS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; - Load in place and run:
+;	- User operation:
+;		- Power on machine with old ROM with eWoz
+;		- Hexload this file
+;		- Start execution at this program's offset in RAM
+;		- Wait for programming to finish (progress messages, or something)
+;		- Set DIP switches as prompted
+;		- Reset the board
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;	UPDATER CONFIG FORMAT
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;+$00 - Number of entries to write
+;+$01 - Entry 1
+;+$06 - Entry 2
+;+$0B - Entry 3
+;...
+;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;	UPDATER CONFIG ENTRY FORMAT
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;+$00 - Source Low Byte
+;+$01 - Source High Byte
+;
+;+$02 - Destination Low Byte
+;+$03 - Destination High Byte
+;
+;+$04 - ROMFS Page
+;+$05 - 128-byte block count
+;
+
+
+START:	
+
+;Just a placeholder where I was trying some stuff out
+	LDY	#$00
+CPYLUP:	LDA	(SRCPTR),Y	;Copy a 64-byte block
+	STA	(DSTPTR),Y
+
+	INY			;Post-increment Y
+	TYA			;Check if Y is 64 by shifting bit 6 into bit 7
+	ASL
+	BPL	CPYLUP		;Copy another byte if we're still under 64
+
