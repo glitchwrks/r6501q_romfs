@@ -1,6 +1,6 @@
 .segment "MEDDSC"
 .byte	$01		;EEPROM
-.byte	$02		;Number of entries
+.byte	$07		;Number of entries
 SIG:	.byte	"ROMFS"
 MAJOR:	.byte	$01
 MINOR:	.byte	$00
@@ -21,7 +21,7 @@ MAXPG:	.byte	$07		;32K device
 .byte	$70		;Entry point address high byte
 .byte	$00		;Entry point address low byte
 
-		 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 .byte	"EWOZ 1.1 for GW-R6501Q SBC      "		;32-character description
 
 
@@ -29,7 +29,7 @@ MAXPG:	.byte	$07		;32K device
 
 .byte	$01		;ROM page number
 
-.byte	$08		;Offset from $F000 high byte
+.byte	$03		;Offset from $F000 high byte
 .byte	$00		;Offset from $F000 low byte
 
 .byte	$13		;Number of 128-byte blocks
@@ -40,8 +40,98 @@ MAXPG:	.byte	$07		;32K device
 .byte	$10		;Entry point address high byte
 .byte	$00		;Entry point address low byte
 
-		 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 .byte	"Tiny BASIC for GW-R6501Q SBC    "		;32-character description
+
+
+
+.byte	$01		;ROM page number
+
+.byte	$0E		;Offset from $F000 high byte
+.byte	$80		;Offset from $F000 low byte
+
+.byte	$1		;Number of 128-byte blocks
+
+.byte	$02		;Load address high byte
+.byte	$00		;Load address low byte
+
+.byte	$02		;Entry point address high byte
+.byte	$00		;Entry point address low byte
+
+	 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+.byte	"Rockwell RSC-FORTH V1.6         "		;32-character description
+
+
+
+.byte	$01		;ROM page number
+
+.byte	$0C		;Offset from $F000 high byte
+.byte	$80		;Offset from $F000 low byte
+
+.byte	$4		;Number of 128-byte blocks
+
+.byte	$02		;Load address high byte
+.byte	$00		;Load address low byte
+
+.byte	$02		;Entry point address high byte
+.byte	$00		;Entry point address low byte
+
+		 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+.byte	"Memory Tester for R6501Q-SBC    "		;32-character description
+
+
+
+.byte	$07		;ROM page number
+
+.byte	$0E		;Offset from $F000 high byte
+.byte	$00		;Offset from $F000 low byte
+
+.byte	$02		;Number of 128-byte blocks
+
+.byte	$02		;Load address high byte
+.byte	$00		;Load address low byte
+
+.byte	$FF		;Entry point address high byte
+.byte	$FF		;Entry point address low byte
+
+	 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+.byte	"R6501Q-SBC Bootloader           "		;32-character description
+
+
+
+.byte	$04		;ROM page number
+
+.byte	$00		;Offset from $F000 high byte
+.byte	$00		;Offset from $F000 low byte
+
+.byte	$20		;Number of 128-byte blocks
+
+.byte	$F0		;Load address high byte
+.byte	$00		;Load address low byte
+
+.byte	$FF		;Entry point address high byte
+.byte	$FF		;Entry point address low byte
+
+	 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+.byte	"RSC-FORTH 1.6 Kernel            "		;32-character description
+
+
+
+.byte	$05		;ROM page number
+
+.byte	$00		;Offset from $F000 high byte
+.byte	$00		;Offset from $F000 low byte
+
+.byte	$40		;Number of 128-byte blocks
+
+.byte	$C0		;Load address high byte
+.byte	$00		;Load address low byte
+
+.byte	$FF		;Entry point address high byte
+.byte	$FF		;Entry point address low byte
+
+	 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+.byte	"RSC-FORTH 1.6 Development Env.  "		;32-character description
 
 
 
@@ -50,6 +140,20 @@ MAXPG:	.byte	$07		;32K device
 
 .segment "TINY_BASIC"
 .incbin "./binaries/tiny_basic.bin"
+
+.segment "MEMTEST"
+.incbin "./binaries/MEMTEST.bin"
+
+.segment "FORTHLOADER"
+.incbin "./binaries/RSC-FORTH_LOADER.bin"
+
+.segment "FORTHKERNEL"
+.incbin "./binaries/RSC-FORTH_KERNEL_Patched_R6501Q-SBC.bin"
+
+.segment "FORTHDEVELOP"
+.incbin "./binaries/RSC-FORTH_DEVEL.bin"
+
+
 
 .segment "BOOTLOADER"
 .incbin "bootloader_loader.bin"

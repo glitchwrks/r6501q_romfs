@@ -37,7 +37,7 @@ DSTPTR	= $42		;Destination pointer
 DSTPLO	= DSTPTR
 DSTPHI	= DSTPTR+1
 ROMPGE	= $44		;ROMFS page
-BLKCNT	= $45		;128-byte block count
+SELETY	= $45		;Selected entry
 
 
 
@@ -203,8 +203,7 @@ DIRETY:	LDA	#(<FILDIR)	;Store low byte of ROMFS directory table
 	LDA	#(>FILDIR)	;Store high byte of ROMFS directory table
 	STA	SRCPHI		;Into pointer high byte
 
-	;Switch to page 0 of ROM (ROMFS directory is here)
-	LDA	#$08		;Ensure ROM Enable bit is set!
+	LDA	#$08		;Switch to page 0 of ROM (ROMFS directory is here)
 	STA	PORTC
 
 	LDA	PORTA		;Read in the option switches
@@ -213,7 +212,7 @@ DIRETY:	LDA	#(<FILDIR)	;Store low byte of ROMFS directory table
 	CLC			;Clear the carry flag in case we have a valid entry that is 0
 	BEQ	LUPEND		;Don't loop, since we're already pointing at entry 0
 	CMP	ETYCNT		;Check to make sure a valid entry is selected
-	BCS	LUPEND		;Is the requested entry >= Total entries? Return entry 0 if it is (invalid entry)
+	BCS	LUPEND		;Is the requested entry >= Total entries? Return entry 0 (currently selected) if it is (invalid entry)
 
 	TAX			;Store the requested entry in X for multiplication
 DIRLUP:	CLC			;Multiplication loop
@@ -227,7 +226,8 @@ DIRLUP:	CLC			;Multiplication loop
 
 	DEX			;Are we done?
 	BNE	DIRLUP		;Nope, increment the pointer by 40 again
-LUPEND:	RTS			;Yep, SRCPTR now contains the desired ROMFS entry
+
+LUPEND:	RTS			;Yep, SRCPTR now contains the desired ROMFS entry and we can return
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;COUT -- Print a character to the console
@@ -248,5 +248,5 @@ COUT1:	LDA	SCSR		;Get UART status
 ;;;;;;;;;;;;;;;;;;;
 
 MESSAG:
-SERMSG:	.byte	$0d,$0a,"Invalid!"	;Boot selection error message
-BUTMSG:	.byte	$0d,$0a,"Booting: ",$00	;Boot message
+SERMSG:	.byte	$0d,$0a,"Invalid"	;Boot selection error message
+BUTMSG:	.byte	$0d,$0a,"Boot: ",$00	;Boot message
