@@ -148,10 +148,12 @@ MAXPG:	.byte	$07		;32K device
 .incbin "./forth_loader/RSC-FORTH_LOADER.bin"
 
 .segment "FORTHKERNEL"
-.incbin "./binaries/RSC-FORTH_KERNEL_Patched_R6501Q-SBC.bin"
+;.incbin "./binaries/RSC-FORTH_KERNEL_Patched_R6501Q-SBC.bin"
+.incbin "./binaries/R65FK2P.bin"
 
 .segment "FORTHDEVELOP"
-.incbin "./binaries/RSC-FORTH_DEVEL.bin"
+;.incbin "./binaries/RSC-FORTH_DEVEL.bin"
+.incbin "./binaries/R65FR2P.bin"
 
 ;Include the bootloader if we're compiling for a monolithic ROM image
 .IFDEF INC_BOOTLOADER

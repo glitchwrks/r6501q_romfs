@@ -108,7 +108,7 @@ KEYLUP:	LDA	SCSR		;Wait for any key to be pressed
 	LDA	#$F0
 	STA	DSTPHI
 
-	LDA	#$80		;Going to start at ROM page 0
+	LDA	#$08		;Going to start at ROM page 0
 	STA	PORTC
 
 	JSR	ROMWRT		;Perform the write operation
@@ -129,7 +129,7 @@ KEYLUP:	LDA	SCSR		;Wait for any key to be pressed
 	LDA	#$FE
 	STA	DSTPHI
 
-	LDA	#$8F		;Going to start at ROM page 15
+	LDA	#$0F		;Going to start at ROM page 7
 	STA	PORTC
 
 	JSR	ROMWRT		;Perform the write operation
@@ -167,6 +167,9 @@ DATPOL:	LDA	(DSTPTR),Y
 	CMP	(SRCPTR),Y
 	BNE	DATPOL		;Keep looping until we read back the same byte
 	INY			;Get Y back to 64
+
+	LDA	#'.'		;TESTING: Emit a '.' to indicate the block was written okay
+	JSR	COUT
 
 	;Y is now 64
 	TYA			;Re-use Y for this addition
@@ -214,19 +217,19 @@ DISSDP:	LDA	PORTC		;Preserve the current ROMFS page
 	PHA
 
 	;$AA -> $5555
-	LDA	#$85		;Page 5
+	LDA	#($08 | $05)		;Page 5
 	STA	PORTC
 	LDA	#$AA
 	STA	$F555		;$5555 on the EEPROM
 
 	;$55 -> 2AAA
-	LDA	#$82		;Page 2
+	LDA	#($08 | $02)		;Page 2
 	STA	PORTC
 	LDA	#$55
 	STA	$FAAA		;$2AAA on the EEPROM
 
 	;$A0 -> $5555
-	LDA	#$85		;Page 5
+	LDA	#($08 | $05)		;Page 5
 	STA	PORTC
 	LDA	#$A0
 	STA	$F555		;$5555 on the EEPROM
@@ -268,9 +271,9 @@ COUT1:	LDA	SCSR		;Get UART status
 ;;;;;;;;;;;;;;;;;;;
 
 MESSAG:
-STARTM:	.byte	$0d,$0a,"Move WR switch to on position\n\rPress any key when ready",$00
+STARTM:	.byte	$0d,$0a,"Move WR switch to on position",$0d,$0a,"Press any key when ready",$00
 WRTM:	.byte	$0d,$0a,"Writing",$00
-ENDM:	.byte	$0d,$0a,"Done\n\rSet switches to 0 and press reset button",$00
+ENDM:	.byte	$0d,$0a,"Done",$0d,$0a,"Set switches to 0 and press reset button",$00
 
 
 
