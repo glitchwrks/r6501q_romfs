@@ -1,0 +1,79 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;RSC FORTH loader equates
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+KERPGE = $02 		;Set to the ROMFS page where the RSC-FORTH kernel is held
+DEVPGE = $03
+
+VECRES = $FFFC		;RSC-FORTH reset vector
+DEVBSE = $C000		;RSC-FORTH development env. base address
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;System register equates
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+PORTC	= $02		;Port C data register (ROM page)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Zero-page variables
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+SRCPTR	= $40		;Source pointer
+SRCPLO	= SRCPTR
+SRCPHI	= SRCPTR+1
+DSTPTR	= $42		;Destination pointer
+DSTPLO	= DSTPTR
+DSTPHI	= DSTPTR+1
+
+.segment "CODE"
+	LDA	#$F0		;Set up pointer high bytes
+	STA	SRCPHI
+	LDA	#(>DEVBSE)
+	STA	DSTPHI
+
+	LDA	#$00		;Set up pointer low bytes
+	STA	SRCPLO
+	STA	DSTPLO
+
+	LDA	#(DEVPGE | $08)	;Select the first page of the RSC-FORTH development ROM
+	STA	PORTC
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Development Environment Copy
+;
+;The following code copies the development
+;  environment out of two ROM-FS pages and
+;  into RAM.
+;The carry bit is used to keep track of
+;  the current ROM page
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	CLC			;Use carry bit for page count
+	LDY	#$00		;Use Y for 256-byte copy loop
+
+CPYLUP:	LDA	(SRCPTR),Y	;256-byte copy loop
+	STA	(DSTPTR),Y
+	INY
+	BNE	CPYLUP		;End the loop once Y overflows back to 0
+
+	INC	DSTPHI		;Incremenet the high bytes of both pointers
+	INC	SRCPHI
+	BNE	CPYLUP		;If we haven't crossed a page boundary, copy another 256 bytes
+	BCS	CPLUPE		;End the loop if this is the second go-around
+
+	SEC			;Set carry to indicate that this is the second page
+
+	LDA	#$F0		;Reset the source pointer
+	STA	SRCPHI
+
+	LDA	#((DEVPGE+1) | $08)	;Select the second page of the RSC-FORTH development ROM
+	STA	PORTC
+	BCS	CPYLUP		;Enter the loop again
+
+CPLUPE:	LDA	#(KERPGE | $08)	;Page in the kernel ROM once we're done copying
+	STA	PORTC
+
+	LDA VECRES		;Load the kernel's reset vector
+	STA SRCPLO
+	LDA VECRES+1
+	STA SRCPHI
+	JMP (SRCPTR)		;Jump to the kernel's reset vector

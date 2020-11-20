@@ -153,7 +153,8 @@ MAXPG:	.byte	$07		;32K device
 .segment "FORTHDEVELOP"
 .incbin "./binaries/RSC-FORTH_DEVEL.bin"
 
-
-
+;Include the bootloader if we're compiling for a monolithic ROM image
+.IFDEF INC_BOOTLOADER
 .segment "BOOTLOADER"
 .incbin "bootloader_loader.bin"
+.ENDIF
