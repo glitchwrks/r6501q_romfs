@@ -20,7 +20,7 @@ $(PROJECT_NAME).o: $(PROJECT_NAME).a65
 $(PROJECT_NAME).bin: $(PROJECT_NAME).o
 	$(CL) $(LFLAGS) -C $(TARGET).cfg -o $(PROJECT_NAME).bin $(PROJECT_NAME).o
 $(PROJECT_NAME).hex: $(PROJECT_NAME).bin
-	srec_cat $(PROJECT_NAME).bin -binary -offset=0x0100 -output $(PROJECT_NAME).hex -Intel -address-length=2
+	srec_cat $(PROJECT_NAME).bin -binary -offset=0x0200 -output $(PROJECT_NAME).hex -Intel -address-length=2
 
 clean:
 	$(RM) $(RMFLAGS) *.o *.bin

@@ -52,5 +52,11 @@ clean:
 
 distclean: clean
 
+
+
 forth_loader:
 	$(MAKE) -C forth_loader
+.PHONY: updater
+updater: romfs_no_bootloader.bin bootloader_loader.bin
+	+$(MAKE) -C updater
+	cp updater/updater.hex updater.hex

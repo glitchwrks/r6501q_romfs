@@ -98,7 +98,7 @@ KEYLUP:	LDA	SCSR		;Wait for any key to be pressed
 	LDA	#(>ROMLO)
 	STA	SRCPHI
 
-	LDA	#(<ROMHI)	;Set the stopping point to just before the high chunk
+	LDA	#(<ROMHI)	;Set the stopping point to the beginning of the high chunk
 	STA	ENDPLO
 	LDA	#(>ROMHI)
 	STA	ENDPHI
@@ -124,7 +124,7 @@ KEYLUP:	LDA	SCSR		;Wait for any key to be pressed
 	LDA	#(>ROMHIE)
 	STA	ENDPHI
 
-	LDA	#$00		;High chunk is loaded in at $FE00
+	LDA	#$00		;High chunk (bootloader) is loaded in at $FE00
 	STA	DSTPLO
 	LDA	#$FE
 	STA	DSTPHI
@@ -141,7 +141,15 @@ KEYLUP:	LDA	SCSR		;Wait for any key to be pressed
 
 ENDLUP:	BNE	ENDLUP		;Sit in a loop at the end, waiting for the user to press the reset button
 
-ROMWRT:	LDY	#$00
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;ROMWRT -- ROM Write
+;
+;Writes the chunk of memory in the range SRCPTR to ENDPTR
+;  into DSTPTR, automatically paging the EEPROM as it goes.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+ROMWRT:	LDY	#$00		;Zero-out Y, as it is used to keep track of the bytes written
 
 	JSR	DISSDP		;Disable software data protection for this block
 	;Copy a 64-byte block
@@ -196,12 +204,12 @@ INCSRC:	TYA			;Re-use Y again
 NODONE:
 	JMP	ROMWRT
 
-
-
-
-
-
-;Disable software data protection for our 64-byte write
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;DISSDP -- Disabled Software Data Protection
+;
+;Disables the software data protection of the EEPROM for
+;  one "write" operation (1-64 bytes)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 DISSDP:	LDA	PORTC		;Preserve the current ROMFS page
 	PHA
 
@@ -262,7 +270,7 @@ COUT1:	LDA	SCSR		;Get UART status
 MESSAG:
 STARTM:	.byte	$0d,$0a,"Move WR switch to on position\n\rPress any key when ready",$00
 WRTM:	.byte	$0d,$0a,"Writing",$00
-ENDM:	.byte	$0d,$0a,"Done\n\rPress reset button",$00
+ENDM:	.byte	$0d,$0a,"Done\n\rSet switches to 0 and press reset button",$00
 
 
 
@@ -271,4 +279,4 @@ ROMLO:
 .INCBIN "../romfs_no_bootloader.bin"
 ROMHI:
 .INCBIN "../bootloader_loader.bin"
-ROMHIE:				;High ROM chunk end
+ROMHIE:	.byte	$00		;High ROM chunk end
