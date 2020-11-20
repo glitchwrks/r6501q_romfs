@@ -1,6 +1,12 @@
 
 *.lst
 *.o
-bootloader_loader.bin
-loader.bin
-romfs.bin
+*.bin
+*.hex
+
+!ewoz_ram.bin
+!MEMTEST.bin
+!RSC-FORTH_DEVEL.bin
+!RSC-FORTH_KERNEL_Patched_R6501Q-SBC.bin
+!RSC-FORTH_KERNEL.bin
+!tiny_basic.bin
