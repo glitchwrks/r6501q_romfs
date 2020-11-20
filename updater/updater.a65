@@ -238,7 +238,7 @@ PRINT:	LDA	MESSAG,X
 	BEQ	PREND		;End loop if a null character is encountered
 	JSR	COUT
 	INX
-	BNE	BMPLUP
+	BNE	PRINT
 PREND:	RTS
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -270,5 +270,5 @@ CHUNKS:				;ROMFS chunks
 ROMLO:
 .INCBIN "../romfs_no_bootloader.bin"
 ROMHI:
-.INCBIN "../romfs_bootloader_loader.bin"
+.INCBIN "../bootloader_loader.bin"
 ROMHIE:				;High ROM chunk end
