@@ -271,7 +271,7 @@ COUT1:	LDA	SCSR		;Get UART status
 ;;;;;;;;;;;;;;;;;;;
 
 MESSAG:
-STARTM:	.byte	$0d,$0a,"Move WR switch to on position",$0d,$0a,"Press any key when ready",$00
+STARTM:	.byte	$0d,$0a,"Update 2020-11-20",$0d,$0a,"Move WR switch to on position",$0d,$0a,"Press any key when ready",$00
 WRTM:	.byte	$0d,$0a,"Writing",$00
 ENDM:	.byte	$0d,$0a,"Done",$0d,$0a,"Set switches to 0 and press reset button",$00
 
