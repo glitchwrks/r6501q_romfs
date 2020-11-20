@@ -14,6 +14,10 @@ SIGNAT	= MEDDSC + $02
 
 PORTC	= $02		;Port C data register (ROM page)
 
+SCCR	= $15		;Serial Communications Control Register
+SCSR	= $16		;Serial Communications Status Register
+SCDAT	= $17		;Serial Channel Data Register
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;Zero-page variables
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -24,8 +28,9 @@ SRCPHI	= SRCPTR+1
 DSTPTR	= $42		;Destination pointer
 DSTPLO	= DSTPTR
 DSTPHI	= DSTPTR+1
-ROMPGE	= $44		;ROMFS page
-SELETY	= $45		;Selected entry
+ENDPTR	= $44		;Source copy end pointer
+ENDPLO	= ENDPTR
+ENDPHI	= ENDPTR+1
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;	QUESTIONS
@@ -71,12 +76,76 @@ SELETY	= $45		;Selected entry
 ;+$05 - 128-byte block count
 ;
 
+;TODO: Display message "Do not remove power\nFlip write switch and press enter key when ready\n"
 
-START:	
+START:	LDA	SCDAT		;Clear the serial data register in case a character is in the buffer
 
-;Just a placeholder where I was trying some stuff out
-	LDY	#$00
-CPYLUP:	LDA	(SRCPTR),Y	;Copy a 64-byte block
+	LDX	#(STARTM-MESSAG)	;Select the welcome message
+	JSR	PRINT
+
+KEYLUP:	LDA	SCSR		;Wait for any key to be pressed
+	AND	#$01
+	BEQ	KEYLUP
+
+	LDA	SCDAT		;Clear the serial data register again
+
+	LDX	#(WRTM-MESSAG)	;Select the "Writing" message
+	JSR	PRINT
+
+	;Copy the low chunk first
+	LDA	#(<ROMLO)
+	STA	SRCPLO
+	LDA	#(>ROMLO)
+	STA	SRCPHI
+
+	LDA	#(<ROMHI)	;Set the stopping point to just before the high chunk
+	STA	ENDPLO
+	LDA	#(>ROMHI)
+	STA	ENDPHI
+
+	LDA	#$00		;Zero out the destination pointer (in relation to the ROM)
+	STA	DSTPLO
+	LDA	#$F0
+	STA	DSTPHI
+
+	LDA	#$80		;Going to start at ROM page 0
+	STA	PORTC
+
+	JSR	ROMWRT		;Perform the write operation
+
+	;Copy the high chunk
+	LDA	#(<ROMHI)
+	STA	SRCPLO
+	LDA	#(>ROMHI)
+	STA	SRCPHI
+
+	LDA	#(<ROMHIE)	;Set the stopping point to just at the end of the high chunk
+	STA	ENDPLO
+	LDA	#(>ROMHIE)
+	STA	ENDPHI
+
+	LDA	#$00		;High chunk is loaded in at $FE00
+	STA	DSTPLO
+	LDA	#$FE
+	STA	DSTPHI
+
+	LDA	#$8F		;Going to start at ROM page 15
+	STA	PORTC
+
+	JSR	ROMWRT		;Perform the write operation
+
+
+
+	LDX	#(ENDM-MESSAG)	;Select the end message
+	JSR	PRINT
+
+ENDLUP:	BNE	ENDLUP		;Sit in a loop at the end, waiting for the user to press the reset button
+
+ROMWRT:	LDY	#$00
+
+	JSR	DISSDP		;Disable software data protection for this block
+	;Copy a 64-byte block
+CPYLUP:	LDA	(SRCPTR),Y	;Copy the data
 	STA	(DSTPTR),Y
 
 	INY			;Post-increment Y
@@ -84,3 +153,122 @@ CPYLUP:	LDA	(SRCPTR),Y	;Copy a 64-byte block
 	ASL
 	BPL	CPYLUP		;Copy another byte if we're still under 64
 
+;Wait for the data to be written (data polling)
+	DEY			;Go back to the previous byte that was written
+DATPOL:	LDA	(DSTPTR),Y
+	CMP	(SRCPTR),Y
+	BNE	DATPOL		;Keep looping until we read back the same byte
+	INY			;Get Y back to 64
+
+	;Y is now 64
+	TYA			;Re-use Y for this addition
+	CLC
+	ADC	DSTPLO		;Add 64 to the destination pointer
+	STA	DSTPLO
+	LDA	#$00
+	ADC	DSTPHI
+	STA	DSTPHI
+	BCC	INCSRC		;Don't bother re-setting the destination pointer if we haven't over-flowed
+
+	LDA	#$F0		;Since the destination will always be a multiple of 64, SRCPLO will always be 0 if we overflow the high byte
+	STA	DSTPHI
+	INC	PORTC		;Increment to the next ROM page
+
+INCSRC:	TYA			;Re-use Y again
+	CLC
+	ADC	SRCPLO
+	STA	SRCPLO
+	LDA	#$00
+	ADC	SRCPHI
+	STA	SRCPHI
+
+	;Check if we're done copying this chunk
+	LDA	SRCPHI
+	CMP	ENDPHI
+	BNE	NODONE		;Do it again if we're not done
+
+	LDA	SRCPLO
+	CMP	ENDPLO
+	BNE	NODONE
+
+	RTS
+
+NODONE:
+	JMP	ROMWRT
+
+
+
+
+
+
+;Disable software data protection for our 64-byte write
+DISSDP:	LDA	PORTC		;Preserve the current ROMFS page
+	PHA
+
+	;$AA -> $5555
+	LDA	#$85		;Page 5
+	STA	PORTC
+	LDA	#$AA
+	STA	$F555		;$5555 on the EEPROM
+
+	;$55 -> 2AAA
+	LDA	#$82		;Page 2
+	STA	PORTC
+	LDA	#$55
+	STA	$FAAA		;$2AAA on the EEPROM
+
+	;$A0 -> $5555
+	LDA	#$85		;Page 5
+	STA	PORTC
+	LDA	#$A0
+	STA	$F555		;$5555 on the EEPROM
+
+	;Writes are now enabled!
+	PLA			;Restore the ROMFS page
+	STA	PORTC
+	RTS
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;PRINT -- Print a null-terminated string indexed by X
+;
+;Prints a string out of the MESSAG section, indexed by the
+;  X register.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+PRINT:	LDA	MESSAG,X
+	BEQ	PREND		;End loop if a null character is encountered
+	JSR	COUT
+	INX
+	BNE	BMPLUP
+PREND:	RTS
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;COUT -- Print a character to the console
+;
+;pre: A register contains character to print
+;post: character printed to console
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+COUT:	PHA			;Save A register
+COUT1:	LDA	SCSR		;Get UART status
+	AND	#$40		;Mask off XMTR Data Reg Empty
+	BEQ	COUT1		;Transmitter busy, wait
+	PLA			;A = character to print
+	STA	SCDAT		;Send it to UART
+	RTS
+
+;;;;;;;;;;;;;;;;;;;
+;Strings
+;;;;;;;;;;;;;;;;;;;
+
+MESSAG:
+STARTM:	.byte	$0d,$0a,"Move WR switch to on position\n\rPress any key when ready",$00
+WRTM:	.byte	$0d,$0a,"Writing",$00
+ENDM:	.byte	$0d,$0a,"Done\n\rPress reset button",$00
+
+
+
+CHUNKS:				;ROMFS chunks
+ROMLO:
+.INCBIN "../romfs_no_bootloader.bin"
+ROMHI:
+.INCBIN "../romfs_bootloader_loader.bin"
+ROMHIE:				;High ROM chunk end

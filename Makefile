@@ -51,3 +51,6 @@ clean:
 	$(RM) $(RMFLAGS) *.o *.bin *.hex *.lst
 
 distclean: clean
+
+forth_loader:
+	$(MAKE) -C forth_loader

@@ -145,7 +145,7 @@ MAXPG:	.byte	$07		;32K device
 .incbin "./binaries/MEMTEST.bin"
 
 .segment "FORTHLOADER"
-.incbin "./binaries/RSC-FORTH_LOADER.bin"
+.incbin "./forth_loader/RSC-FORTH_LOADER.bin"
 
 .segment "FORTHKERNEL"
 .incbin "./binaries/RSC-FORTH_KERNEL_Patched_R6501Q-SBC.bin"
