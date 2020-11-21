@@ -59,7 +59,7 @@ MAXPG:	.byte	$07		;32K device
 .byte	$00		;Entry point address low byte
 
 	 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-.byte	"Rockwell RSC-FORTH V1.6         "		;32-character description
+.byte	"Rockwell RSC-FORTH V1.7         "		;32-character description
 
 
 
@@ -113,7 +113,7 @@ MAXPG:	.byte	$07		;32K device
 .byte	$FF		;Entry point address low byte
 
 	 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-.byte	"RSC-FORTH 1.6 Kernel            "		;32-character description
+.byte	"RSC-FORTH 1.7 Conf 2 Kernel     "		;32-character description
 
 
 
@@ -131,7 +131,7 @@ MAXPG:	.byte	$07		;32K device
 .byte	$FF		;Entry point address low byte
 
 	 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-.byte	"RSC-FORTH 1.6 Development Env.  "		;32-character description
+.byte	"RSC-FORTH 1.7 Conf 2 Dev. Env.  "		;32-character description
 
 
 
@@ -149,7 +149,7 @@ MAXPG:	.byte	$07		;32K device
 
 .segment "FORTHKERNEL"
 ;.incbin "./binaries/RSC-FORTH_KERNEL_Patched_R6501Q-SBC.bin"
-.incbin "./binaries/R65FK2P.bin"
+.incbin "./binaries/R65FK2P_R6501Q-SBC.bin"
 
 .segment "FORTHDEVELOP"
 ;.incbin "./binaries/RSC-FORTH_DEVEL.bin"
