@@ -15,10 +15,10 @@ MAXPG:	.byte	$07		;32K device
 
 .byte	$06		;Number of 128-byte blocks
 
-.byte	$70		;Load address high byte
+.byte	$7D		;Load address high byte
 .byte	$00		;Load address low byte
 
-.byte	$70		;Entry point address high byte
+.byte	$7D		;Entry point address high byte
 .byte	$00		;Entry point address low byte
 
 	 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
