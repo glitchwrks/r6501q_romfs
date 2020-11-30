@@ -1,6 +1,6 @@
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;ROMFS address equates
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ROMBSE	= $F000		;ROMFS page base address
 MEDDSC	= ROMBSE + $100
@@ -8,10 +8,9 @@ ETYCNT	= MEDDSC + $01	;ROMFS directory entry count
 FILDIR	= MEDDSC + $10
 SIGNAT	= MEDDSC + $02
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;System register equates
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 PORTA	= $00		;Port A data register (Option switches)
 PORTC	= $02		;Port C data register (ROM page)
 
@@ -26,10 +25,9 @@ LATCHAH	= $19		;Upper Latch A (write)
 COUNTAH	= $19		;Upper Counter A (read)
 COUNTAL	= $1A		;Lower Counter A (read)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;Zero-page variables
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 SRCPTR	= $40		;Source pointer
 SRCPLO	= SRCPTR
 SRCPHI	= SRCPTR+1
@@ -243,10 +241,9 @@ COUT1:	LDA	SCSR		;Get UART status
 	STA	SCDAT		;Send it to UART
 	RTS
 
-;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;Strings
-;;;;;;;;;;;;;;;;;;;
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 MESSAG:
 SERMSG:	.byte	$0d,$0a,"Invalid"	;Boot selection error message
 BUTMSG:	.byte	$0d,$0a,"Boot: ",$00	;Boot message

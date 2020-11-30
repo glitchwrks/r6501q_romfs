@@ -1,7 +1,6 @@
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;ROMFS address equates
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ROMBSE	= $F000		;ROMFS page base address
 MEDDSC	= ROMBSE + $100
 ETYCNT	= MEDDSC + $01	;ROMFS directory entry count
@@ -10,10 +9,9 @@ SIGNAT	= MEDDSC + $02
 
 LDRADR = $0100		;Address in RAM where the bootloader is stored (and jumped into)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;System register equates
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 PORTA	= $00		;Port A data register
 
 MCR	= $14		;Mode Control Register
@@ -27,10 +25,9 @@ LATCHAH	= $19		;Upper Latch A (write)
 COUNTAH	= $19		;Upper Counter A (read)
 COUNTAL	= $1A		;Lower Counter A (read)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;Zero-page variables
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 PTR	= $40
 PTRLO	= PTR
 PTRHI	= PTR+1

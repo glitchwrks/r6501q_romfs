@@ -1,27 +1,42 @@
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;ROMFS address equates
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;UPDATER -- Update the 28C256 in a GW R65X1Q SBC
+;
+;This program will update the ROMFS image in a Glitch Works
+;R65X1Q SBC, in-system. Load the resulting hex file into
+;memory using the eWOZ ROM monitor and run it with:
+;
+;    200R
+;
+;The updater will prompt for the user to enable EEPROM
+;writes via DIP switch.
+;
+;*** CAUTION! THIS PROGRAM REWRITES THE SYSTEM EEPROM! ***
+;
+;Do not attempt to stop or reset the R65X1Q SBC until 
+;prompted to do so.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;ROMFS address equates
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ROMBSE	= $F000		;ROMFS page base address
 MEDDSC	= ROMBSE + $100
 ETYCNT	= MEDDSC + $01	;ROMFS directory entry count
 FILDIR	= MEDDSC + $10
 SIGNAT	= MEDDSC + $02
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;System register equates
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 PORTC	= $02		;Port C data register (ROM page)
 
 SCCR	= $15		;Serial Communications Control Register
 SCSR	= $16		;Serial Communications Status Register
 SCDAT	= $17		;Serial Channel Data Register
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;Zero-page variables
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 SRCPTR	= $40		;Source pointer
 SRCPLO	= SRCPTR
 SRCPHI	= SRCPTR+1
@@ -31,13 +46,6 @@ DSTPHI	= DSTPTR+1
 ENDPTR	= $44		;Source copy end pointer
 ENDPLO	= ENDPTR
 ENDPHI	= ENDPTR+1
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;	QUESTIONS
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; - Do we want to do the fast 64-byte block write operation on the EEPROM? - yes
-; - Software write protection? - yes
-;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;	IDEAS

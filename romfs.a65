@@ -1,3 +1,6 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;ROMFS media descriptor
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 .segment "MEDDSC"
 .byte	$01		;EEPROM
 .byte	$07		;Number of entries
@@ -7,7 +10,14 @@ MINOR:	.byte	$00
 PATCH:	.byte	$00
 MAXPG:	.byte	$07		;32K device
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Beginning of ROMFS directory
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 .segment "FILDIR"
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Entry for eWoz 1.2
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 .byte	$01		;ROM page number
 
 .byte	$00		;Offset from $F000 high byte
@@ -21,12 +31,11 @@ MAXPG:	.byte	$07		;32K device
 .byte	$7D		;Entry point address high byte
 .byte	$00		;Entry point address low byte
 
-	 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-.byte	"EWOZ 1.1 for GW-R6501Q SBC      "		;32-character description
+.byte	"eWoz 1.2 for GW R65X1Q SBC      "		;32-character description
 
-
-
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Entry for Tiny BASIC
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 .byte	$01		;ROM page number
 
 .byte	$03		;Offset from $F000 high byte
@@ -40,11 +49,14 @@ MAXPG:	.byte	$07		;32K device
 .byte	$10		;Entry point address high byte
 .byte	$00		;Entry point address low byte
 
-	 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-.byte	"Tiny BASIC for GW-R6501Q SBC    "		;32-character description
+.byte	"Tiny BASIC for GW R65X1Q SBC    "		;32-character description
 
-
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Entry for RSC-FORTH 1.7 bootloader
+;
+;This is the actual bootable entry for RSC-FORTH. The later
+;entries are data files are are NOT bootable.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 .byte	$01		;ROM page number
 
 .byte	$0E		;Offset from $F000 high byte
@@ -58,11 +70,11 @@ MAXPG:	.byte	$07		;32K device
 .byte	$02		;Entry point address high byte
 .byte	$00		;Entry point address low byte
 
-	 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-.byte	"Rockwell RSC-FORTH V1.7         "		;32-character description
+.byte	"Rockwell RSC-FORTH 1.7 Booter   "		;32-character description
 
-
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Entry for memory test program
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 .byte	$01		;ROM page number
 
 .byte	$0C		;Offset from $F000 high byte
@@ -76,11 +88,11 @@ MAXPG:	.byte	$07		;32K device
 .byte	$02		;Entry point address high byte
 .byte	$00		;Entry point address low byte
 
-		 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-.byte	"Memory Tester for R6501Q-SBC    "		;32-character description
+.byte	"Memory Tester for R65X1Q SBC    "		;32-character description
 
-
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Entry for R65X1Q SBC ROMFS bootloader
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 .byte	$07		;ROM page number
 
 .byte	$0E		;Offset from $F000 high byte
@@ -94,11 +106,11 @@ MAXPG:	.byte	$07		;32K device
 .byte	$FF		;Entry point address high byte
 .byte	$FF		;Entry point address low byte
 
-	 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-.byte	"R6501Q-SBC Bootloader           "		;32-character description
+.byte	"R65X1Q SBC ROMFS Bootloader     "		;32-character description
 
-
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Entry for RSC-FORTH 1.7 configuration 2 kernel
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 .byte	$04		;ROM page number
 
 .byte	$00		;Offset from $F000 high byte
@@ -112,11 +124,11 @@ MAXPG:	.byte	$07		;32K device
 .byte	$FF		;Entry point address high byte
 .byte	$FF		;Entry point address low byte
 
-	 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 .byte	"RSC-FORTH 1.7 Conf 2 Kernel     "		;32-character description
 
-
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Entry for RSC-FORTH 1.7 configuration 2 development ROM
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 .byte	$05		;ROM page number
 
 .byte	$00		;Offset from $F000 high byte
@@ -130,11 +142,11 @@ MAXPG:	.byte	$07		;32K device
 .byte	$FF		;Entry point address high byte
 .byte	$FF		;Entry point address low byte
 
-	 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 .byte	"RSC-FORTH 1.7 Conf 2 Dev. Env.  "		;32-character description
 
-
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Includes for ROM images
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 .segment "EWOZ"
 .incbin "./binaries/ewoz_ram.bin"
 

@@ -1,7 +1,6 @@
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;RSC FORTH loader equates
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 KERPGE = $02 		;Set to the ROMFS page where the RSC-FORTH kernel is held
 DEVPGE = $03
 
@@ -14,16 +13,14 @@ DEVBSE = $4000		;RSC-FORTH R65FR2 development env. base address
 DEVBSE = $C000		;RSC-FORTH R65FR3 development env. base address
 .ENDIF
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;System register equates
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 PORTC	= $02		;Port C data register (ROM page)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;Zero-page variables
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 SRCPTR	= $40		;Source pointer
 SRCPLO	= SRCPTR
 SRCPHI	= SRCPTR+1
@@ -44,7 +41,7 @@ DSTPHI	= DSTPTR+1
 	LDA	#(DEVPGE | $08)	;Select the first page of the RSC-FORTH development ROM
 	STA	PORTC
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;Development Environment Copy
 ;
 ;The following code copies the development
@@ -52,7 +49,7 @@ DSTPHI	= DSTPTR+1
 ;  into RAM.
 ;The carry bit is used to keep track of
 ;  the current ROM page
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	CLC			;Use carry bit for page count
 	LDY	#$00		;Use Y for 256-byte copy loop
 
