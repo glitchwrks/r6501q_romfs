@@ -70,7 +70,11 @@ MAXPG:	.byte	$07		;32K device
 .byte	$02		;Entry point address high byte
 .byte	$00		;Entry point address low byte
 
+.IFDEF CONF3
+.byte	"Rockwell RSC-FORTH 1.6 Booter   "		;32-character description
+.ELSE
 .byte	"Rockwell RSC-FORTH 1.7 Booter   "		;32-character description
+.ENDIF
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;Entry for memory test program
@@ -108,41 +112,11 @@ MAXPG:	.byte	$07		;32K device
 
 .byte	"R65X1Q SBC ROMFS Bootloader     "		;32-character description
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;Entry for RSC-FORTH 1.7 configuration 2 kernel
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-.byte	$04		;ROM page number
-
-.byte	$00		;Offset from $F000 high byte
-.byte	$00		;Offset from $F000 low byte
-
-.byte	$20		;Number of 128-byte blocks
-
-.byte	$F0		;Load address high byte
-.byte	$00		;Load address low byte
-
-.byte	$FF		;Entry point address high byte
-.byte	$FF		;Entry point address low byte
-
-.byte	"RSC-FORTH 1.7 Conf 2 Kernel     "		;32-character description
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;Entry for RSC-FORTH 1.7 configuration 2 development ROM
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-.byte	$05		;ROM page number
-
-.byte	$00		;Offset from $F000 high byte
-.byte	$00		;Offset from $F000 low byte
-
-.byte	$40		;Number of 128-byte blocks
-
-.byte	$C0		;Load address high byte
-.byte	$00		;Load address low byte
-
-.byte	$FF		;Entry point address high byte
-.byte	$FF		;Entry point address low byte
-
-.byte	"RSC-FORTH 1.7 Conf 2 Dev. Env.  "		;32-character description
+.IFDEF CONF3
+.INCLUDE "romfs_forth_conf3.a65"
+.ELSE
+.INCLUDE "romfs_forth_conf2.a65"
+.ENDIF
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;Includes for ROM images
@@ -154,18 +128,8 @@ MAXPG:	.byte	$07		;32K device
 .incbin "./binaries/tiny_basic.bin"
 
 .segment "MEMTEST"
-.incbin "./binaries/MEMTEST.bin"
+.incbin "./binaries/memtest.bin"
 
-.segment "FORTHLOADER"
-.incbin "./forth_loader/RSC-FORTH_LOADER.bin"
-
-.segment "FORTHKERNEL"
-;.incbin "./binaries/RSC-FORTH_KERNEL_Patched_R6501Q-SBC.bin"
-.incbin "./binaries/R65FK2P_R6501Q-SBC.bin"
-
-.segment "FORTHDEVELOP"
-;.incbin "./binaries/RSC-FORTH_DEVEL.bin"
-.incbin "./binaries/R65FR2P.bin"
 
 ;Include the bootloader if we're compiling for a monolithic ROM image
 .IFDEF INC_BOOTLOADER

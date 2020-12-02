@@ -4,9 +4,8 @@
 KERPGE = $02 		;Set to the ROMFS page where the RSC-FORTH kernel is held
 DEVPGE = $03
 
-CONF2 = 1
-
 VECRES = $FFFC		;RSC-FORTH reset vector
+
 .IFDEF CONF2		;Change the memory map if this loader is for the configuration 2 ROM set
 DEVBSE = $4000		;RSC-FORTH R65FR2 development env. base address
 .ELSE

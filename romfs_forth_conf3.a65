@@ -1,0 +1,47 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Entry for RSC-FORTH 1.6 configuration 3 kernel
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+.byte	$04		;ROM page number
+
+.byte	$00		;Offset from $F000 high byte
+.byte	$00		;Offset from $F000 low byte
+
+.byte	$20		;Number of 128-byte blocks
+
+.byte	$F0		;Load address high byte
+.byte	$00		;Load address low byte
+
+.byte	$FF		;Entry point address high byte
+.byte	$FF		;Entry point address low byte
+
+.byte	"RSC-FORTH 1.6 Conf 3 Kernel     "		;32-character description
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Entry for RSC-FORTH 1.6 configuration 3 development ROM
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+.byte	$05		;ROM page number
+
+.byte	$00		;Offset from $F000 high byte
+.byte	$00		;Offset from $F000 low byte
+
+.byte	$40		;Number of 128-byte blocks
+
+.byte	$C0		;Load address high byte
+.byte	$00		;Load address low byte
+
+.byte	$FF		;Entry point address high byte
+.byte	$FF		;Entry point address low byte
+
+.byte	"RSC-FORTH 1.6 Conf 3 Dev. Env.  "		;32-character description
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Includes for ROM images
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+.segment "FORTHLOADER"
+.incbin "./forth_loader/forth_loader_conf3.bin"
+
+.segment "FORTHKERNEL"
+.incbin "./binaries/R65FK3P_R6501Q-SBC.bin"
+
+.segment "FORTHDEVELOP"
+.incbin "./binaries/R65FR3P.bin"

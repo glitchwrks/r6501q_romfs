@@ -13,14 +13,25 @@ RM		= rm
 
 TARGET = r6501q
 
-all: clean $(PROJECT_NAME).hex
 
-$(PROJECT_NAME).o: $(PROJECT_NAME).a65
-	$(CA) $(AFLAGS) -o $(PROJECT_NAME).o $(PROJECT_NAME).a65
-$(PROJECT_NAME).bin: $(PROJECT_NAME).o
-	$(CL) $(LFLAGS) -C $(TARGET).cfg -o $(PROJECT_NAME).bin $(PROJECT_NAME).o
-$(PROJECT_NAME).hex: $(PROJECT_NAME).bin
-	srec_cat $(PROJECT_NAME).bin -binary -offset=0x0200 -output $(PROJECT_NAME).hex -Intel -address-length=2
+all: clean $(PROJECT_NAME)_conf2.hex $(PROJECT_NAME)_conf3.hex
+
+$(PROJECT_NAME)_conf2.bin: $(PROJECT_NAME)_conf2.o
+	$(CL) $(LFLAGS) -C $(TARGET).cfg -o $(PROJECT_NAME)_conf2.bin $(PROJECT_NAME)_conf2.o
+
+$(PROJECT_NAME)_conf3.bin: $(PROJECT_NAME)_conf3.o
+	$(CL) $(LFLAGS) -C $(TARGET).cfg -o $(PROJECT_NAME)_conf3.bin $(PROJECT_NAME)_conf3.o
+
+$(PROJECT_NAME)_conf2.o: $(PROJECT_NAME).a65
+	$(CA) $(C2AFLAGS) -D CONF2=1 -o $(PROJECT_NAME)_conf2.o $(PROJECT_NAME).a65
+
+$(PROJECT_NAME)_conf3.o: $(PROJECT_NAME).a65
+	$(CA) $(C3AFLAGS) -D CONF3=1 -o $(PROJECT_NAME)_conf3.o $(PROJECT_NAME).a65
+
+$(PROJECT_NAME)_conf2.hex: $(PROJECT_NAME)_conf2.bin
+	srec_cat $(PROJECT_NAME)_conf2.bin -binary -offset=0x0200 -output $(PROJECT_NAME)_conf2.hex -Intel -address-length=2
+$(PROJECT_NAME)_conf3.hex: $(PROJECT_NAME)_conf3.bin
+	srec_cat $(PROJECT_NAME)_conf3.bin -binary -offset=0x0200 -output $(PROJECT_NAME)_conf3.hex -Intel -address-length=2
 
 clean:
-	$(RM) $(RMFLAGS) *.o *.bin
+	$(RM) $(RMFLAGS) *.o *.bin *.hex
