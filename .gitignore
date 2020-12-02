@@ -5,10 +5,13 @@
 *.hex
 
 !ewoz_ram.bin
-!MEMTEST.bin
+!memtest.bin
 !RSC-FORTH_DEVEL.bin
 !RSC-FORTH_KERNEL_Patched_R6501Q-SBC.bin
 !R65FK2P_R6501Q-SBC.bin
+!R65FK3P_R6501Q-SBC.bin
 !R65FR2P.bin
+!R65FR3P.bin
 !RSC-FORTH_KERNEL.bin
 !tiny_basic.bin
+!updater.hex
