@@ -4,7 +4,9 @@ This repository contains source files and utilities for using ROMFS on the [Glit
 
 ### Updating ROMFS
 
-Load the file `updater/updater.hex` using the eWoz ROM monitor -- this will take two to three minutes at 4800 bps. Once the hex load has finished with a success message, execute the loader by typing:
+There are two different updaters available. `updater/updater_conf2.hex` contains RSC-FORTH configuration 2 and will work on an R65X1Q SBC without a Glitchbus 32K memory expansion board. `updater/updater_conf3.hex` contains RSC-FORTH configuration 3 and requires a Glitchbus 32K memory expansion board.
+
+Load the desired updater hex file using the eWoz ROM monitor -- this will take two to three minutes at 4800 bps. Once the hex load has finished with a success message, execute the loader by typing:
 
 `200R`
 
@@ -26,4 +28,4 @@ Record #    Contents
 6           RSC-FORTH 1.7 Conf 2 Dev. Env.
 ```
 
-Setting the `PA0` - `PA3` switches to the record number specified in the above table will load and boot the specified ROMFS record. Note that records number 5 and 6 are not directly bootable and must be loaded by record number 2, the RSC-FORTH bootloader
+Setting the `PA0` - `PA3` switches to the record number specified in the above table will load and boot the specified ROMFS record. Note that records number 5 and 6 are not directly bootable and must be loaded by record number 2, the RSC-FORTH bootloader.
